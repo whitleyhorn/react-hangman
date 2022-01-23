@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import "./Hangman.css";
+import { randomWord } from "./words.js";
 import img0 from "./0.jpg";
 import img1 from "./1.jpg";
 import img2 from "./2.jpg";
@@ -17,8 +18,9 @@ class Hangman extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { nWrong: 0, guessed: new Set(), answer: "apple" };
+    this.state = { nWrong: 0, guessed: new Set(), answer: randomWord()};
     this.handleGuess = this.handleGuess.bind(this);
+    this.reset  = this.reset.bind(this);
   }
 
   /** guessedWord: show current-state of word:
@@ -30,7 +32,7 @@ class Hangman extends Component {
       .map(ltr => (this.state.guessed.has(ltr) ? ltr : "_"));
   }
 
-  /** handleGuest: handle a guessed letter:
+  /** handleGuess: handle a guessed letter:
     - add to guessed letters
     - if not in answer, increase number-wrong guesses
   */
@@ -46,6 +48,7 @@ class Hangman extends Component {
   generateButtons() {
     return "abcdefghijklmnopqrstuvwxyz".split("").map(ltr => (
       <button
+        key={ltr}
         value={ltr}
         onClick={this.handleGuess}
         disabled={this.state.guessed.has(ltr)}
@@ -55,14 +58,26 @@ class Hangman extends Component {
     ));
   }
 
+  /** reset: resets state and chooses new random word **/
+  reset() {
+    this.setState({ nWrong: 0, guessed: new Set(), answer: randomWord()});
+  }
+
   /** render: render game */
   render() {
+    const {nWrong, answer} = this.state;
+    let lost = this.state.nWrong >= this.props.maxWrong;
     return (
       <div className='Hangman'>
         <h1>Hangman</h1>
-        <img src={this.props.images[this.state.nWrong]} />
+        <img src={this.props.images[nWrong]} alt={`Wrong guesses: ${nWrong}`}/>
+        <p className="Hangman-nWrong">{`Number wrong: ${nWrong}`}</p>
         <p className='Hangman-word'>{this.guessedWord()}</p>
-        <p className='Hangman-btns'>{this.generateButtons()}</p>
+        { (lost) 
+            ? <p className="Hangman-loseText">You lose! Correct word: {answer}</p>
+            : <p className='Hangman-btns'>{this.generateButtons()}</p>
+        }
+        <button className="Hangman-reset" onClick={this.reset}>Reset</button>
       </div>
     );
   }
